@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: onewater-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: JWT_EXPIRY_HOURS
+        value: "24"
+      - key: JWT_REFRESH_EXPIRY_DAYS
+        value: "30"
+      - key: BUSINESS_NAME
+        value: OneWater Pakistan
+      - key: INVOICE_PREFIX
+        value: OW
+      - key: ENVIRONMENT
+        value: production
+    healthCheckPath: /health
+    rootDir: onewater_api
