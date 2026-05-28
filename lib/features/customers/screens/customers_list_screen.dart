@@ -8,10 +8,35 @@ import '../../../shared/models/customer_model.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
 import '../../onboarding/providers/auth_provider.dart';
 
+import '../../../core/cache/hive_cache_service.dart';
+import '../../../core/providers/connectivity_provider.dart';
+
 final customersProvider = FutureProvider.autoDispose<List<CustomerModel>>((ref) async {
-  final dio = ref.read(dioClientProvider);
-  final response = await dio.get(ApiEndpoints.customers);
-  return (response.data as List).map((e) => CustomerModel.fromJson(e)).toList();
+  final cache = HiveCacheService();
+  final isOnline = ref.read(isOnlineProvider);
+
+  if (!isOnline) {
+    final cached = cache.getList(ApiEndpoints.customers);
+    if (cached != null) {
+      return cached.map((e) => CustomerModel.fromJson(e)).toList();
+    }
+  }
+
+  try {
+    final dio = ref.read(dioClientProvider);
+    final response = await dio.get(ApiEndpoints.customers);
+    
+    // Save to cache
+    await cache.put(ApiEndpoints.customers, response.data, ttlMinutes: 1440); // 24 hours
+    
+    return (response.data as List).map((e) => CustomerModel.fromJson(e)).toList();
+  } catch (e) {
+    final cached = cache.getList(ApiEndpoints.customers);
+    if (cached != null) {
+      return cached.map((e) => CustomerModel.fromJson(e)).toList();
+    }
+    rethrow;
+  }
 });
 
 class CustomersListScreen extends ConsumerStatefulWidget {

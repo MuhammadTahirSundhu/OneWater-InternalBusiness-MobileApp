@@ -104,7 +104,7 @@ class _AuthInterceptor extends Interceptor {
 
     // Retry logic for 502/503 (Render.com cold starts)
     if (err.response?.statusCode == 502 || err.response?.statusCode == 503) {
-      final retries = err.requestOptions.extra['retryCount'] ?? 0;
+      final int retries = err.requestOptions.extra['retryCount'] as int? ?? 0;
       if (retries < 3) {
         await Future.delayed(Duration(seconds: 2 * (retries + 1)));
         err.requestOptions.extra['retryCount'] = retries + 1;

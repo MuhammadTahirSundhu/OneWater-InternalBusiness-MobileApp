@@ -5,11 +5,35 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../shared/models/product_model.dart';
 import '../../onboarding/providers/auth_provider.dart';
+import '../../../core/cache/hive_cache_service.dart';
+import '../../../core/providers/connectivity_provider.dart';
 
 final productsProvider = FutureProvider.autoDispose<List<ProductModel>>((ref) async {
-  final dio = ref.read(dioClientProvider);
-  final response = await dio.get(ApiEndpoints.products);
-  return (response.data as List).map((e) => ProductModel.fromJson(e)).toList();
+  final cache = HiveCacheService();
+  final isOnline = ref.read(isOnlineProvider);
+
+  if (!isOnline) {
+    final cached = cache.getList(ApiEndpoints.products);
+    if (cached != null) {
+      return cached.map((e) => ProductModel.fromJson(e)).toList();
+    }
+  }
+
+  try {
+    final dio = ref.read(dioClientProvider);
+    final response = await dio.get(ApiEndpoints.products);
+    
+    // Save to cache
+    await cache.put(ApiEndpoints.products, response.data, ttlMinutes: 1440); // 24 hours
+    
+    return (response.data as List).map((e) => ProductModel.fromJson(e)).toList();
+  } catch (e) {
+    final cached = cache.getList(ApiEndpoints.products);
+    if (cached != null) {
+      return cached.map((e) => ProductModel.fromJson(e)).toList();
+    }
+    rethrow;
+  }
 });
 
 class ProductsScreen extends ConsumerWidget {

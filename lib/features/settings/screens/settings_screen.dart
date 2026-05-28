@@ -122,9 +122,9 @@ class MoreScreen extends ConsumerWidget {
             ),
 
           _MenuTile(
-            icon: Icons.settings_outlined,
-            label: 'Settings',
-            subtitle: 'Profile, password, notifications',
+            icon: Icons.security,
+            label: 'Security & PIN',
+            subtitle: 'App PIN lock',
             onTap: () => context.push('/settings'),
           ),
 

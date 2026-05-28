@@ -6,6 +6,7 @@ class CustomerModel {
   final String? area;
   final String? notes;
   final double totalPending;
+  final double lifetimeValue;
   final String? createdBy;
   final DateTime createdAt;
 
@@ -17,6 +18,7 @@ class CustomerModel {
     this.area,
     this.notes,
     this.totalPending = 0,
+    this.lifetimeValue = 0,
     this.createdBy,
     required this.createdAt,
   });
@@ -30,6 +32,7 @@ class CustomerModel {
       area: json['area'] as String?,
       notes: json['notes'] as String?,
       totalPending: (json['total_pending'] as num?)?.toDouble() ?? 0,
+      lifetimeValue: (json['lifetime_value'] as num?)?.toDouble() ?? 0,
       createdBy: json['created_by'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
