@@ -10,6 +10,12 @@ import 'features/transactions/screens/transactions_list_screen.dart';
 import 'features/transactions/screens/new_transaction_screen.dart';
 import 'features/customers/screens/customers_list_screen.dart';
 import 'features/settings/screens/settings_screen.dart';
+import 'features/reports/screens/reports_screen.dart';
+import 'features/notifications/screens/notifications_screen.dart';
+import 'features/products/screens/products_screen.dart';
+import 'features/audit/screens/audit_logs_screen.dart';
+import 'features/settings/screens/users_screen.dart';
+import 'features/settings/screens/business_settings_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -104,34 +110,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/reports',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => Scaffold(
-          appBar: AppBar(title: const Text('Reports')),
-          body: const Center(child: Text('Reports screen — coming soon')),
-        ),
+        builder: (context, state) => const ReportsScreen(),
       ),
       GoRoute(
         path: '/notifications',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => Scaffold(
-          appBar: AppBar(title: const Text('Notifications')),
-          body: const Center(child: Text('Notifications screen — coming soon')),
-        ),
+        builder: (context, state) => const NotificationsScreen(),
       ),
       GoRoute(
         path: '/products',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => Scaffold(
-          appBar: AppBar(title: const Text('Products')),
-          body: const Center(child: Text('Products screen — coming soon')),
-        ),
+        builder: (context, state) => const ProductsScreen(),
       ),
       GoRoute(
         path: '/audit-logs',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => Scaffold(
-          appBar: AppBar(title: const Text('Audit Logs')),
-          body: const Center(child: Text('Audit logs screen — coming soon')),
-        ),
+        builder: (context, state) => const AuditLogsScreen(),
       ),
       GoRoute(
         path: '/settings',
@@ -144,18 +138,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/users',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => Scaffold(
-          appBar: AppBar(title: const Text('Manage Users')),
-          body: const Center(child: Text('Manage users screen — coming soon')),
-        ),
+        builder: (context, state) => const UsersScreen(),
       ),
       GoRoute(
         path: '/settings/business',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => Scaffold(
-          appBar: AppBar(title: const Text('Business Settings')),
-          body: const Center(child: Text('Business settings screen — coming soon')),
-        ),
+        builder: (context, state) => const BusinessSettingsScreen(),
       ),
     ],
   );
