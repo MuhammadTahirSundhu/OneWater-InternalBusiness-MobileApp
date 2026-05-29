@@ -84,7 +84,7 @@ class ProductsScreen extends ConsumerWidget {
                       Switch(
                         value: p.isActive,
                         onChanged: (v) {},
-                        activeColor: AppColors.primary,
+                        activeTrackColor: AppColors.primary, activeThumbColor: Colors.white,
                       ),
                     ],
                   ),
@@ -94,7 +94,7 @@ class ProductsScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => const Center(child: Text('Error loading products')),
+        error: (error, stackTrace) => const Center(child: Text('Error loading products')),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {},
@@ -123,3 +123,4 @@ class _PriceTag extends StatelessWidget {
     );
   }
 }
+

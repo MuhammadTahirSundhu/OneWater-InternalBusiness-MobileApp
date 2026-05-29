@@ -12,6 +12,7 @@ class SecureStorageService {
   static const _userDataKey = 'user_data';
   static const _appPinKey = 'app_pin';
   static const _lastActiveKey = 'last_active';
+  static const _hasSeenOnboardingKey = 'has_seen_onboarding';
 
   // Access Token
   Future<void> setAccessToken(String token) async {
@@ -67,6 +68,16 @@ class SecureStorageService {
       return DateTime.fromMillisecondsSinceEpoch(int.parse(data));
     }
     return null;
+  }
+
+  // Onboarding
+  Future<void> setHasSeenOnboarding(bool value) async {
+    await _storage.write(key: _hasSeenOnboardingKey, value: value.toString());
+  }
+
+  Future<bool> hasSeenOnboarding() async {
+    final value = await _storage.read(key: _hasSeenOnboardingKey);
+    return value == 'true';
   }
 
   // Check if authenticated

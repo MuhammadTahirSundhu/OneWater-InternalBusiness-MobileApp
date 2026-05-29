@@ -1,5 +1,7 @@
 import io
 import logging
+import cloudinary
+import cloudinary.uploader
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
@@ -10,6 +12,17 @@ from dependencies import get_supabase
 from config import get_settings
 
 logger = logging.getLogger(__name__)
+
+
+def _configure_cloudinary():
+    """Configure Cloudinary using settings. Called once per upload."""
+    settings = get_settings()
+    cloudinary.config(
+        cloud_name=settings.cloudinary_cloud_name,
+        api_key=settings.cloudinary_api_key,
+        api_secret=settings.cloudinary_api_secret,
+        secure=True,
+    )
 
 
 async def generate_invoice_pdf(transaction_id: str) -> str | None:
@@ -159,27 +172,21 @@ async def generate_invoice_pdf(transaction_id: str) -> str | None:
 
         doc.build(elements)
 
-        # Upload to Supabase Storage
+        # ── Upload to Cloudinary ────────────────────────────────────────────
         pdf_bytes = buffer.getvalue()
-        file_path = f"invoices/{transaction_id}.pdf"
+        _configure_cloudinary()
 
-        try:
-            db.storage.from_("invoices").upload(
-                file_path,
-                pdf_bytes,
-                file_options={"content-type": "application/pdf", "upsert": "true"},
-            )
-        except Exception:
-            # File might already exist, try update
-            db.storage.from_("invoices").update(
-                file_path,
-                pdf_bytes,
-                file_options={"content-type": "application/pdf"},
-            )
+        upload_result = cloudinary.uploader.upload(
+            pdf_bytes,
+            resource_type="raw",          # non-image file
+            public_id=f"invoices/{transaction_id}",
+            format="pdf",
+            overwrite=True,
+            type="upload",
+        )
 
-        # Get signed URL (valid for 1 year)
-        signed_url = db.storage.from_("invoices").create_signed_url(file_path, 31536000)
-        return signed_url.get("signedURL") if isinstance(signed_url, dict) else str(signed_url)
+        # Return the secure HTTPS URL (permanent, no expiry)
+        return upload_result.get("secure_url")
 
     except Exception as e:
         logger.error(f"Invoice generation failed: {e}", exc_info=True)

@@ -40,7 +40,7 @@ class UsersScreen extends ConsumerWidget {
                   trailing: Switch(
                     value: user.isActive,
                     onChanged: (v) {},
-                    activeColor: AppColors.primary,
+                    activeTrackColor: AppColors.primary, activeThumbColor: Colors.white,
                   ),
                 ),
               );
@@ -48,7 +48,7 @@ class UsersScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => const Center(child: Text('Error loading users')),
+        error: (error, stackTrace) => const Center(child: Text('Error loading users')),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {},
@@ -58,3 +58,4 @@ class UsersScreen extends ConsumerWidget {
     );
   }
 }
+

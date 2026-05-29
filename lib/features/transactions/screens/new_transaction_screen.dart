@@ -36,7 +36,7 @@ class _NewTransactionScreenState extends ConsumerState<NewTransactionScreen> {
   String _paymentStatus = 'paid';
   double _discount = 0;
   double _amountPaid = 0;
-  DateTime _transactionDate = DateTime.now();
+  final DateTime _transactionDate = DateTime.now();
   DateTime? _dueDate;
   final _notesController = TextEditingController();
   final _discountController = TextEditingController(text: '0');
@@ -253,7 +253,7 @@ class _NewTransactionScreenState extends ConsumerState<NewTransactionScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -2))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -2))],
       ),
       child: SafeArea(
         child: Row(
@@ -357,7 +357,7 @@ class _NewTransactionScreenState extends ConsumerState<NewTransactionScreen> {
                 subtitle: Text(c.phone ?? 'No phone'),
                 trailing: selected ? const Icon(Icons.check_circle, color: AppColors.primary) : null,
                 selected: selected,
-                selectedTileColor: AppColors.primarySurface.withOpacity(0.3),
+                selectedTileColor: AppColors.primarySurface.withValues(alpha: 0.3),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 onTap: () => setState(() => _selectedCustomer = c),
               );
@@ -445,7 +445,7 @@ class _NewTransactionScreenState extends ConsumerState<NewTransactionScreen> {
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: qty > 0 ? AppColors.primarySurface.withOpacity(0.3) : AppColors.surface,
+                  color: qty > 0 ? AppColors.primarySurface.withValues(alpha: 0.3) : AppColors.surface,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: qty > 0 ? AppColors.primary : AppColors.cardBorder,
@@ -529,7 +529,7 @@ class _NewTransactionScreenState extends ConsumerState<NewTransactionScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: AppColors.primarySurface,
-              border: Border(top: BorderSide(color: AppColors.primary.withOpacity(0.3))),
+              border: Border(top: BorderSide(color: AppColors.primary.withValues(alpha: 0.3))),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -727,3 +727,4 @@ class _PaymentMethodChip extends StatelessWidget {
     );
   }
 }
+

@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     invoice_prefix: str = "OW"
     invoice_start_number: int = 1
     environment: str = "development"
+    # Cloudinary
+    cloudinary_cloud_name: str = ""
+    cloudinary_api_key: str = ""
+    cloudinary_api_secret: str = ""
 
     class Config:
         env_file = ".env"

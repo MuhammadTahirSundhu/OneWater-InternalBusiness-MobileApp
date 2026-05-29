@@ -90,7 +90,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       width: 72,
                       height: 72,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -113,7 +113,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       'Business Management',
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                       ),
                     ),
                   ],
@@ -263,3 +263,4 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 }
+

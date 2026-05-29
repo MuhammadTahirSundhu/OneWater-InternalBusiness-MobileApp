@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/api_endpoints.dart';
-import '../../../core/network/dio_client.dart';
 import '../../../shared/models/report_model.dart';
 import '../../onboarding/providers/auth_provider.dart';
 

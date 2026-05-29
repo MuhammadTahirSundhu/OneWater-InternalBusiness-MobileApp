@@ -57,7 +57,7 @@ class NotificationsScreen extends ConsumerWidget {
                 final date = DateTime.parse(notif['created_at']);
 
                 return Container(
-                  color: isRead ? Colors.transparent : AppColors.primarySurface.withOpacity(0.3),
+                  color: isRead ? Colors.transparent : AppColors.primarySurface.withValues(alpha: 0.3),
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor: isRead ? AppColors.surface : AppColors.primary,
@@ -100,7 +100,7 @@ class NotificationsScreen extends ConsumerWidget {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, __) => const Center(child: Text('Error loading notifications')),
+          error: (error, stackTrace) => const Center(child: Text('Error loading notifications')),
         ),
       ),
     );
@@ -117,3 +117,4 @@ class NotificationsScreen extends ConsumerWidget {
     }
   }
 }
+

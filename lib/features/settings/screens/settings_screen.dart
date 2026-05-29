@@ -32,7 +32,7 @@ class MoreScreen extends ConsumerWidget {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: Colors.white.withOpacity(0.2),
+                  backgroundColor: Colors.white.withValues(alpha: 0.2),
                   child: Text(
                     user?.initials ?? '?',
                     style: GoogleFonts.poppins(
@@ -58,7 +58,7 @@ class MoreScreen extends ConsumerWidget {
                       Text(
                         user?.roleDisplayName ?? '',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           fontSize: 13,
                         ),
                       ),
@@ -186,7 +186,7 @@ class _MenuTile extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: (iconColor ?? AppColors.primary).withOpacity(0.1),
+            color: (iconColor ?? AppColors.primary).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: iconColor ?? AppColors.primary, size: 22),
@@ -200,3 +200,4 @@ class _MenuTile extends StatelessWidget {
     );
   }
 }
+

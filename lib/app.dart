@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/onboarding/providers/auth_provider.dart';
 import 'features/onboarding/screens/splash_screen.dart';
+import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/onboarding/screens/login_screen.dart';
 import 'features/onboarding/screens/pin_lock_screen.dart';
 import 'features/dashboard/screens/dashboard_screen.dart';
@@ -25,25 +26,46 @@ import 'features/transactions/screens/collect_payment_screen.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
-final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
+// ─── Auth Listenable ──────────────────────────────────────────────────────────
+// Bridges Riverpod AuthState to a ChangeNotifier so GoRouter can listen for
+// auth changes without rebuilding itself from scratch.
+class _AuthStateListenable extends ChangeNotifier {
+  _AuthStateListenable(this._ref) {
+    _ref.listen<AuthState>(authStateProvider, (prev, next) => notifyListeners());
+  }
 
-  return GoRouter(
+  final Ref _ref;
+
+  bool get isAuthenticated => _ref.read(authStateProvider).isAuthenticated;
+}
+
+// ─── Router Provider ──────────────────────────────────────────────────────────
+// Created ONCE — never recreated. Uses refreshListenable to trigger redirects.
+final routerProvider = Provider<GoRouter>((ref) {
+  final authListenable = _AuthStateListenable(ref);
+
+  final router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/splash',
+    refreshListenable: authListenable,
     redirect: (context, state) {
-      final isAuthenticated = authState.isAuthenticated;
+      final isAuthenticated = authListenable.isAuthenticated;
       final location = state.matchedLocation;
 
+      // Always allow splash through — it handles navigation itself
       if (location == '/splash') return null;
 
-      if (!isAuthenticated && location != '/login') {
-        return '/login';
-      }
+      // Allow onboarding without auth
+      if (location == '/onboarding') return null;
 
-      if (isAuthenticated && (location == '/login' || location == '/splash')) {
-        return '/dashboard';
-      }
+      // Allow PIN screens without triggering redirect loop
+      if (location.startsWith('/pin')) return null;
+
+      // Unauthenticated → go to login
+      if (!isAuthenticated && location != '/login') return '/login';
+
+      // Authenticated → leave login/splash alone (splash navigates itself)
+      if (isAuthenticated && location == '/login') return '/dashboard';
 
       return null;
     },
@@ -51,6 +73,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/splash',
         builder: (context, state) => const _SplashWrapper(),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
       ),
       GoRoute(
         path: '/login',
@@ -105,12 +131,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/transactions/:id',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => TransactionDetailScreen(id: state.pathParameters['id']!),
+        builder: (context, state) =>
+            TransactionDetailScreen(id: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/transactions/:id/collect',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => CollectPaymentScreen(id: state.pathParameters['id']!),
+        builder: (context, state) =>
+            CollectPaymentScreen(id: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/customers/new',
@@ -123,7 +151,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/customers/:id',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => CustomerDetailScreen(id: state.pathParameters['id']!),
+        builder: (context, state) =>
+            CustomerDetailScreen(id: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/reports',
@@ -162,8 +191,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+
+  ref.onDispose(authListenable.dispose);
+  return router;
 });
 
+// ─── App Root ─────────────────────────────────────────────────────────────────
 class OneWaterApp extends ConsumerStatefulWidget {
   const OneWaterApp({super.key});
 
@@ -171,7 +204,8 @@ class OneWaterApp extends ConsumerStatefulWidget {
   ConsumerState<OneWaterApp> createState() => _OneWaterAppState();
 }
 
-class _OneWaterAppState extends ConsumerState<OneWaterApp> with WidgetsBindingObserver {
+class _OneWaterAppState extends ConsumerState<OneWaterApp>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -189,20 +223,26 @@ class _OneWaterAppState extends ConsumerState<OneWaterApp> with WidgetsBindingOb
     if (state == AppLifecycleState.resumed) {
       final storage = ref.read(secureStorageProvider);
       final lastActive = await storage.getLastActive();
-      
+
       // If inactive for more than 1 minute, require PIN
-      if (lastActive != null && DateTime.now().difference(lastActive).inMinutes >= 1) {
+      if (lastActive != null &&
+          DateTime.now().difference(lastActive).inMinutes >= 1) {
         final pin = await storage.getAppPin();
         if (pin != null && pin.isNotEmpty) {
           final router = ref.read(routerProvider);
-          // Only push if not already on PIN screen or login
-          final location = router.routerDelegate.currentConfiguration.last.matchedLocation;
-          if (!location.startsWith('/pin') && location != '/login' && location != '/splash') {
-            router.push('/pin-lock');
+          final location =
+              router.routerDelegate.currentConfiguration.last.matchedLocation;
+          if (!location.startsWith('/pin') &&
+              location != '/login' &&
+              location != '/splash') {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) router.push('/pin-lock');
+            });
           }
         }
       }
-    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
       final storage = ref.read(secureStorageProvider);
       await storage.setLastActive();
     }
@@ -221,7 +261,7 @@ class _OneWaterAppState extends ConsumerState<OneWaterApp> with WidgetsBindingOb
   }
 }
 
-// Splash wrapper — auto-navigates after auth check
+// ─── Splash Wrapper ───────────────────────────────────────────────────────────
 class _SplashWrapper extends ConsumerStatefulWidget {
   const _SplashWrapper();
 
@@ -233,23 +273,39 @@ class _SplashWrapperState extends ConsumerState<_SplashWrapper> {
   @override
   void initState() {
     super.initState();
-    _checkAuth();
+    // Defer until after the first frame is fully rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _checkAuth();
+    });
   }
 
   Future<void> _checkAuth() async {
-    await ref.read(authStateProvider.notifier).checkAuthStatus();
-    await Future.delayed(const Duration(seconds: 2));
+    // Run auth check and splash delay concurrently
+    await Future.wait([
+      ref.read(authStateProvider.notifier).checkAuthStatus(),
+      Future.delayed(const Duration(seconds: 2)),
+    ]);
 
     if (!mounted) return;
 
+    final storage = ref.read(secureStorageProvider);
+    final hasSeenOnboarding = await storage.hasSeenOnboarding();
+
+    if (!mounted) return;
+
+    if (!hasSeenOnboarding) {
+      context.go('/onboarding');
+      return;
+    }
+
     final isAuthenticated = ref.read(authStateProvider).isAuthenticated;
     if (isAuthenticated) {
-      final storage = ref.read(secureStorageProvider);
       final pin = await storage.getAppPin();
+      if (!mounted) return;
       if (pin != null && pin.isNotEmpty) {
-        if (mounted) context.go('/pin-lock');
+        context.go('/pin-lock');
       } else {
-        if (mounted) context.go('/dashboard');
+        context.go('/dashboard');
       }
     } else {
       if (mounted) context.go('/login');
@@ -262,7 +318,7 @@ class _SplashWrapperState extends ConsumerState<_SplashWrapper> {
   }
 }
 
-// Main shell with bottom navigation
+// ─── Main Shell ───────────────────────────────────────────────────────────────
 class _MainShell extends StatelessWidget {
   final Widget child;
 
@@ -285,17 +341,37 @@ class _MainShell extends StatelessWidget {
         currentIndex: _calculateSelectedIndex(context),
         onTap: (index) {
           switch (index) {
-            case 0: context.go('/dashboard'); break;
-            case 1: context.go('/transactions'); break;
-            case 2: context.go('/customers'); break;
-            case 3: context.go('/more'); break;
+            case 0:
+              context.go('/dashboard');
+              break;
+            case 1:
+              context.go('/transactions');
+              break;
+            case 2:
+              context.go('/customers');
+              break;
+            case 3:
+              context.go('/more');
+              break;
           }
         },
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), activeIcon: Icon(Icons.receipt_long), label: 'Sales'),
-          BottomNavigationBarItem(icon: Icon(Icons.people_outline), activeIcon: Icon(Icons.people), label: 'Customers'),
-          BottomNavigationBarItem(icon: Icon(Icons.more_horiz), activeIcon: Icon(Icons.more_horiz), label: 'More'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'Dashboard'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.receipt_long_outlined),
+              activeIcon: Icon(Icons.receipt_long),
+              label: 'Sales'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.people_outline),
+              activeIcon: Icon(Icons.people),
+              label: 'Customers'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.more_horiz),
+              activeIcon: Icon(Icons.more_horiz),
+              label: 'More'),
         ],
       ),
     );

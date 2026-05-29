@@ -66,7 +66,7 @@ class TransactionDetailScreen extends ConsumerWidget {
           ),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, __) => Center(child: Text('Error: $e')),
+        error: (err, stackTrace) => Center(child: Text('Error: $err')),
       ),
     );
   }

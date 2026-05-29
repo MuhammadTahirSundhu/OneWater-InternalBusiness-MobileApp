@@ -92,7 +92,7 @@ class DashboardScreen extends ConsumerWidget {
                             )
                           : const SizedBox.shrink(),
                       loading: () => const SizedBox.shrink(),
-                      error: (_, __) => const SizedBox.shrink(),
+                      error: (error, stackTrace) => const SizedBox.shrink(),
                     ),
                   ],
                 ),
@@ -276,7 +276,7 @@ class DashboardScreen extends ConsumerWidget {
                   child: CircularProgressIndicator(),
                 )),
               ),
-              error: (_, __) => const SliverToBoxAdapter(
+              error: (error, stackTrace) => const SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.all(32),
                   child: Center(child: Text('Failed to load transactions')),
@@ -320,7 +320,7 @@ class _QuickActionCard extends StatelessWidget {
             border: Border.all(color: AppColors.cardBorder),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
+                color: Colors.black.withValues(alpha: 0.03),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -331,7 +331,7 @@ class _QuickActionCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 22),
@@ -424,3 +424,4 @@ class _TransactionTile extends StatelessWidget {
     );
   }
 }
+

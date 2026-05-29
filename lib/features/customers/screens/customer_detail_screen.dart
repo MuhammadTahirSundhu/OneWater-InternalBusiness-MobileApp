@@ -136,13 +136,13 @@ class CustomerDetailScreen extends ConsumerWidget {
                   );
                 },
                 loading: () => const SliverToBoxAdapter(child: Center(child: CircularProgressIndicator())),
-                error: (e, __) => SliverToBoxAdapter(child: Center(child: Text('Error: $e'))),
+                error: (err, stackTrace) => SliverToBoxAdapter(child: Center(child: Text('Error: $err'))),
               ),
             ],
           ),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, __) => Center(child: Text('Error: $e')),
+        error: (err, stackTrace) => Center(child: Text('Error: $err')),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/transactions/new'),
@@ -165,9 +165,9 @@ class _StatBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -179,3 +179,4 @@ class _StatBox extends StatelessWidget {
     );
   }
 }
+

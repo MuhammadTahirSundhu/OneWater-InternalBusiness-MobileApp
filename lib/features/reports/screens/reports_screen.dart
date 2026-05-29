@@ -65,7 +65,7 @@ class ReportsScreen extends ConsumerWidget {
         ],
       ),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (_, __) => const Text('Error loading summary'),
+      error: (error, stackTrace) => const Text('Error loading summary'),
     );
   }
 
@@ -111,7 +111,7 @@ class ReportsScreen extends ConsumerWidget {
                     dotData: FlDotData(show: true),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                     ),
                   ),
                 ],
@@ -120,7 +120,7 @@ class ReportsScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => const Text('Error loading chart'),
+        error: (error, stackTrace) => const Text('Error loading chart'),
       ),
     );
   }
@@ -188,7 +188,7 @@ class ReportsScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => const Text('Error loading chart'),
+        error: (error, stackTrace) => const Text('Error loading chart'),
       ),
     );
   }
@@ -247,7 +247,7 @@ class ReportsScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => const Text('Error loading chart'),
+        error: (error, stackTrace) => const Text('Error loading chart'),
       ),
     );
   }
@@ -317,3 +317,4 @@ class _ChartCard extends StatelessWidget {
     );
   }
 }
+

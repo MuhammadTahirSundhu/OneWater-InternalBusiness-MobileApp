@@ -12,6 +12,7 @@ final isOnlineProvider = Provider<bool>((ref) {
   return result.when(
     data: (results) => results.any((r) => r != ConnectivityResult.none),
     loading: () => true,  // Assume online while loading
-    error: (_, __) => true,
+    error: (error, stackTrace) => true,
   );
 });
+

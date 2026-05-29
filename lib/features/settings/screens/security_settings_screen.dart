@@ -66,7 +66,7 @@ class _SecuritySettingsScreenState extends ConsumerState<SecuritySettingsScreen>
               title: const Text('App PIN Lock', style: TextStyle(fontWeight: FontWeight.w600)),
               subtitle: Text(_hasPin ? 'Enabled' : 'Disabled'),
               value: _hasPin,
-              activeColor: AppColors.primary,
+              activeTrackColor: AppColors.primary, activeThumbColor: Colors.white,
               onChanged: _togglePin,
             ),
           ),
@@ -75,3 +75,4 @@ class _SecuritySettingsScreenState extends ConsumerState<SecuritySettingsScreen>
     );
   }
 }
+

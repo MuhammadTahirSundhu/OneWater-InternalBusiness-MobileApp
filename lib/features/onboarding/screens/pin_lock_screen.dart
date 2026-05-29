@@ -4,8 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/storage/secure_storage.dart';
-import '../../onboarding/providers/auth_provider.dart';
+import '../providers/auth_provider.dart';
 
 enum PinMode { verify, setup, confirm }
 

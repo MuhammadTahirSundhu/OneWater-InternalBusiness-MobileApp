@@ -39,8 +39,9 @@ class AuditLogsScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => const Center(child: Text('Error loading logs')),
+        error: (error, stackTrace) => const Center(child: Text('Error loading logs')),
       ),
     );
   }
 }
+
