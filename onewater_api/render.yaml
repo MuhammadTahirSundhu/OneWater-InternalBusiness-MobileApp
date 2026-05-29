@@ -14,6 +14,12 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
       - key: JWT_ALGORITHM
         value: HS256
       - key: JWT_EXPIRY_HOURS
@@ -22,8 +28,14 @@ services:
         value: "30"
       - key: BUSINESS_NAME
         value: OneWater Pakistan
+      - key: BUSINESS_PHONE
+        value: "+92-300-0000000"
+      - key: BUSINESS_ADDRESS
+        value: "Pakistan"
       - key: INVOICE_PREFIX
         value: OW
+      - key: INVOICE_START_NUMBER
+        value: "1"
       - key: ENVIRONMENT
         value: production
     healthCheckPath: /health

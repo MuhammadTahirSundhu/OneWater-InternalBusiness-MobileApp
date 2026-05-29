@@ -1,9 +1,12 @@
+import 'package:flutter/foundation.dart';
+
 class ApiEndpoints {
   ApiEndpoints._();
 
-  // Base URL - change this to your Render.com URL in production
-  static const String baseUrl = 'http://10.0.2.2:8000'; // Android emulator localhost
-  // static const String baseUrl = 'https://your-app.onrender.com'; // Production
+  // Base URL - automatically switches based on build mode
+  static const String baseUrl = kReleaseMode 
+      ? 'https://onewater-api.onrender.com' // Production (Render URL)
+      : 'http://10.0.2.2:8000'; // Localhost for debugging
 
   static const String apiVersion = '/api/v1';
 
