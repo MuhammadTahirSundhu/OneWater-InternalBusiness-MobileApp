@@ -5,8 +5,8 @@ class ApiEndpoints {
 
   // Base URL - automatically switches based on build mode
   static const String baseUrl = kReleaseMode 
-      ? 'https://onewater-api.onrender.com' // Production (Render URL)
-      : 'http://10.0.2.2:8000'; // Localhost for debugging
+      ? 'https://onewater-internalbusiness-mobileapp.onrender.com' // Production (Render URL)
+      : 'https://onewater-internalbusiness-mobileapp.onrender.com'; // Localhost for debugging
 
   static const String apiVersion = '/api/v1';
 
