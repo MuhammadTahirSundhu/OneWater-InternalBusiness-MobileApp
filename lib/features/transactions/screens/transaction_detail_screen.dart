@@ -8,6 +8,7 @@ import '../../../core/utils/date_utils.dart';
 import '../../../shared/models/transaction_model.dart';
 import '../../../shared/widgets/payment_status_badge.dart';
 import '../../onboarding/providers/auth_provider.dart';
+import '../utils/invoice_pdf_generator.dart';
 
 final transactionDetailProvider = FutureProvider.autoDispose.family<TransactionModel, String>((ref, id) async {
   final dio = ref.read(dioClientProvider);
@@ -27,16 +28,20 @@ class TransactionDetailScreen extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Invoice Details'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.picture_as_pdf),
-            onPressed: () {},
-          ),
-        ],
+        actions: transactionAsync.when(
+          data: (txn) => [
+            IconButton(
+              icon: const Icon(Icons.share),
+              onPressed: () => InvoicePdfGenerator.shareInvoice(txn),
+            ),
+            IconButton(
+              icon: const Icon(Icons.picture_as_pdf),
+              onPressed: () => InvoicePdfGenerator.viewAndPrintInvoice(txn),
+            ),
+          ],
+          loading: () => [],
+          error: (_, __) => [],
+        ),
       ),
       body: transactionAsync.when(
         data: (txn) => SingleChildScrollView(
