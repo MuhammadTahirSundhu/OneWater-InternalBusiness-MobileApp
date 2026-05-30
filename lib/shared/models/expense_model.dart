@@ -6,6 +6,7 @@ class ExpenseModel {
   final String expenseDate;
   final String? notes;
   final String? recordedBy;
+  final String? recordedByName;
   final DateTime createdAt;
 
   ExpenseModel({
@@ -16,6 +17,7 @@ class ExpenseModel {
     required this.expenseDate,
     this.notes,
     this.recordedBy,
+    this.recordedByName,
     required this.createdAt,
   });
 
@@ -28,6 +30,7 @@ class ExpenseModel {
       expenseDate: json['expense_date'] as String,
       notes: json['notes'] as String?,
       recordedBy: json['recorded_by'] as String?,
+      recordedByName: json['recorded_by_name'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
@@ -72,6 +75,7 @@ class AmountInModel {
   final double amount;
   final String? notes;
   final String? recordedBy;
+  final String? recordedByName;
   final String recordedDate;
   final DateTime createdAt;
 
@@ -81,6 +85,7 @@ class AmountInModel {
     required this.amount,
     this.notes,
     this.recordedBy,
+    this.recordedByName,
     required this.recordedDate,
     required this.createdAt,
   });
@@ -92,6 +97,7 @@ class AmountInModel {
       amount: (json['amount'] as num).toDouble(),
       notes: json['notes'] as String?,
       recordedBy: json['recorded_by'] as String?,
+      recordedByName: json['recorded_by_name'] as String?,
       recordedDate: json['recorded_date'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
     );

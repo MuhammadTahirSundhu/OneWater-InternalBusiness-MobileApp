@@ -61,18 +61,28 @@ class ReportsScreen extends ConsumerWidget {
           final isSelected = p['value'] == currentPreset;
           return Padding(
             padding: const EdgeInsets.only(right: 8.0),
-            child: ChoiceChip(
-              label: Text(p['label']!),
-              selected: isSelected,
-              onSelected: (selected) {
-                if (selected) {
-                  ref.read(reportPresetProvider.notifier).state = p['value']!;
-                }
+            child: GestureDetector(
+              onTap: () {
+                ref.read(reportPresetProvider.notifier).state = p['value']!;
               },
-              selectedColor: AppColors.primarySurface,
-              labelStyle: TextStyle(
-                color: isSelected ? AppColors.primary : AppColors.textSecondary,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.primarySurface : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected ? AppColors.primary : AppColors.cardBorder,
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  p['label']!,
+                  style: TextStyle(
+                    color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
               ),
             ),
           );

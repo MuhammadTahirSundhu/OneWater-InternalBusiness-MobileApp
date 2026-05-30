@@ -80,18 +80,50 @@ class _CustomersListScreenState extends ConsumerState<CustomersListScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
-                ChoiceChip(
-                  label: const Text('All'),
-                  selected: !_pendingOnly,
-                  onSelected: (_) => setState(() => _pendingOnly = false),
-                  selectedColor: AppColors.primarySurface,
+                GestureDetector(
+                  onTap: () => setState(() => _pendingOnly = false),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: !_pendingOnly ? AppColors.primarySurface : Colors.transparent,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: !_pendingOnly ? AppColors.primary : AppColors.cardBorder,
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      'All',
+                      style: TextStyle(
+                        color: !_pendingOnly ? AppColors.primary : AppColors.textSecondary,
+                        fontWeight: !_pendingOnly ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 8),
-                ChoiceChip(
-                  label: const Text('Has Pending'),
-                  selected: _pendingOnly,
-                  onSelected: (_) => setState(() => _pendingOnly = true),
-                  selectedColor: AppColors.dangerLight,
+                GestureDetector(
+                  onTap: () => setState(() => _pendingOnly = true),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: _pendingOnly ? AppColors.dangerLight : Colors.transparent,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _pendingOnly ? AppColors.danger : AppColors.cardBorder,
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      'Has Pending',
+                      style: TextStyle(
+                        color: _pendingOnly ? AppColors.danger : AppColors.textSecondary,
+                        fontWeight: _pendingOnly ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),

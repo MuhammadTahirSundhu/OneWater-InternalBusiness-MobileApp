@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/api_endpoints.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../shared/models/user_model.dart';
@@ -11,11 +12,33 @@ final usersProvider = FutureProvider.autoDispose<List<UserModel>>((ref) async {
   return (response.data as List).map((e) => UserModel.fromJson(e)).toList();
 });
 
-class UsersScreen extends ConsumerWidget {
+class UsersScreen extends ConsumerStatefulWidget {
   const UsersScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<UsersScreen> createState() => _UsersScreenState();
+}
+
+class _UsersScreenState extends ConsumerState<UsersScreen> {
+  Future<void> _toggleUserActive(UserModel user, bool isActive) async {
+    try {
+      final dio = ref.read(dioClientProvider);
+      await dio.put(
+        '${ApiEndpoints.users}/${user.id}',
+        data: {'is_active': isActive},
+      );
+      ref.invalidate(usersProvider);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.danger),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final usersAsync = ref.watch(usersProvider);
 
     return Scaffold(
@@ -39,7 +62,7 @@ class UsersScreen extends ConsumerWidget {
                   subtitle: Text('${user.roleDisplayName} • ${user.phone}'),
                   trailing: Switch(
                     value: user.isActive,
-                    onChanged: (v) {},
+                    onChanged: (v) => _toggleUserActive(user, v),
                     activeTrackColor: AppColors.primary, activeThumbColor: Colors.white,
                   ),
                 ),
@@ -51,7 +74,7 @@ class UsersScreen extends ConsumerWidget {
         error: (error, stackTrace) => const Center(child: Text('Error loading users')),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
+        onPressed: () => context.push('/settings/users/new'),
         icon: const Icon(Icons.add),
         label: const Text('Add User'),
       ),

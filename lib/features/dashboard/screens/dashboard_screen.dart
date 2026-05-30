@@ -399,6 +399,19 @@ class _TransactionTile extends StatelessWidget {
                           color: AppColors.textSecondary,
                         ),
                       ),
+                      if (txn.createdByName != null) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.person, size: 12, color: AppColors.textTertiary),
+                            const SizedBox(width: 4),
+                            Text(
+                              txn.createdByName!,
+                              style: const TextStyle(fontSize: 11, color: AppColors.textTertiary),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),

@@ -25,7 +25,7 @@ async def list_transactions(
     current_user: dict = Depends(get_current_user),
 ):
     db = get_supabase()
-    query = db.table("transactions").select("*").order("transaction_date", desc=True)
+    query = db.table("transactions").select("*, users!transactions_created_by_fkey(full_name)").order("transaction_date", desc=True)
 
     # Salesman can only see their own transactions
     if current_user["role"] == "salesman":
@@ -60,7 +60,12 @@ async def list_transactions(
     transactions = []
     for t in result.data:
         items = items_by_txn.get(t["id"], [])
-        t_response = TransactionResponse(**t, items=items)
+        
+        # Extract created_by_name
+        user_data = t.pop("users", None)
+        created_by_name = user_data.get("full_name") if user_data else None
+        
+        t_response = TransactionResponse(**t, created_by_name=created_by_name, items=items)
         transactions.append(t_response)
 
     return transactions
@@ -156,7 +161,11 @@ async def get_transaction(transaction_id: str, current_user: dict = Depends(get_
     items_result = db.table("transaction_items").select("*").eq("transaction_id", transaction_id).execute()
     items = [TransactionItemResponse(**item) for item in items_result.data]
 
-    return TransactionResponse(**t, items=items)
+    # Fetch user name for this single transaction
+    user_result = db.table("users").select("full_name").eq("id", t["created_by"]).execute()
+    created_by_name = user_result.data[0]["full_name"] if user_result.data else None
+
+    return TransactionResponse(**t, created_by_name=created_by_name, items=items)
 
 
 @router.put("/{transaction_id}", response_model=TransactionResponse)

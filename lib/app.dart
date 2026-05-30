@@ -17,6 +17,7 @@ import 'features/notifications/screens/notifications_screen.dart';
 import 'features/products/screens/products_screen.dart';
 import 'features/audit/screens/audit_logs_screen.dart';
 import 'features/settings/screens/users_screen.dart';
+import 'features/settings/screens/add_user_screen.dart';
 import 'features/settings/screens/business_settings_screen.dart';
 import 'features/settings/screens/security_settings_screen.dart';
 import 'features/customers/screens/customer_detail_screen.dart';
@@ -192,6 +193,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/settings/users',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const UsersScreen(),
+      ),
+      GoRoute(
+        path: '/settings/users/new',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AddUserScreen(),
       ),
       GoRoute(
         path: '/settings/business',

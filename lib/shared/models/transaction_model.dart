@@ -45,6 +45,7 @@ class TransactionModel {
   final String customerName;
   final String? customerPhone;
   final String? createdBy;
+  final String? createdByName;
   final DateTime transactionDate;
   final DateTime? dueDate;
   final double subtotal;
@@ -65,6 +66,7 @@ class TransactionModel {
     required this.customerName,
     this.customerPhone,
     this.createdBy,
+    this.createdByName,
     required this.transactionDate,
     this.dueDate,
     required this.subtotal,
@@ -87,6 +89,7 @@ class TransactionModel {
       customerName: json['customer_name'] as String,
       customerPhone: json['customer_phone'] as String?,
       createdBy: json['created_by'] as String?,
+      createdByName: json['created_by_name'] as String?,
       transactionDate: DateTime.parse(json['transaction_date'] as String),
       dueDate: json['due_date'] != null ? DateTime.parse(json['due_date'] as String) : null,
       subtotal: (json['subtotal'] as num).toDouble(),

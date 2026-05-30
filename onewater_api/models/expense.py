@@ -29,6 +29,7 @@ class ExpenseResponse(BaseModel):
     expense_date: date
     notes: Optional[str] = None
     recorded_by: Optional[str] = None
+    recorded_by_name: Optional[str] = None
     created_at: datetime
 
     class Config:
@@ -48,6 +49,7 @@ class AmountInResponse(BaseModel):
     amount: float
     notes: Optional[str] = None
     recorded_by: Optional[str] = None
+    recorded_by_name: Optional[str] = None
     recorded_date: date
     created_at: datetime
 

@@ -25,7 +25,7 @@ async def list_expenses(
     current_user: dict = Depends(require_admin_or_manager),
 ):
     db = get_supabase()
-    query = db.table("expenses").select("*").order("expense_date", desc=True)
+    query = db.table("expenses").select("*, users!expenses_recorded_by_fkey(full_name)").order("expense_date", desc=True)
 
     if date_from:
         query = query.gte("expense_date", date_from.isoformat())
@@ -35,7 +35,14 @@ async def list_expenses(
         query = query.eq("category", category)
 
     result = query.range(offset, offset + limit - 1).execute()
-    return [ExpenseResponse(**e) for e in result.data]
+    
+    expenses = []
+    for item in result.data:
+        user_data = item.pop("users", None)
+        item["recorded_by_name"] = user_data.get("full_name") if user_data else None
+        expenses.append(ExpenseResponse(**item))
+        
+    return expenses
 
 
 @router.post("/", response_model=ExpenseResponse, status_code=status.HTTP_201_CREATED)
@@ -100,7 +107,7 @@ async def list_amount_in(
     current_user: dict = Depends(require_admin_or_manager),
 ):
     db = get_supabase()
-    query = db.table("amount_in").select("*").order("recorded_date", desc=True)
+    query = db.table("amount_in").select("*, users!amount_in_recorded_by_fkey(full_name)").order("recorded_date", desc=True)
 
     if date_from:
         query = query.gte("recorded_date", date_from.isoformat())
@@ -108,7 +115,14 @@ async def list_amount_in(
         query = query.lte("recorded_date", date_to.isoformat())
 
     result = query.range(offset, offset + limit - 1).execute()
-    return [AmountInResponse(**a) for a in result.data]
+    
+    amounts = []
+    for item in result.data:
+        user_data = item.pop("users", None)
+        item["recorded_by_name"] = user_data.get("full_name") if user_data else None
+        amounts.append(AmountInResponse(**item))
+        
+    return amounts
 
 
 @router.post("/amount-in/", response_model=AmountInResponse, status_code=status.HTTP_201_CREATED)

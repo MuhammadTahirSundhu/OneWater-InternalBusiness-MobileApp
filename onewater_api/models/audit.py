@@ -34,10 +34,12 @@ class NotificationResponse(BaseModel):
         from_attributes = True
 
 
+from typing import Optional, Any
+
 class BusinessSettingResponse(BaseModel):
     id: str
     key: str
-    value: dict
+    value: Any
     updated_by: Optional[str] = None
     updated_at: datetime
 
@@ -46,4 +48,4 @@ class BusinessSettingResponse(BaseModel):
 
 
 class BusinessSettingUpdate(BaseModel):
-    value: dict
+    value: Any

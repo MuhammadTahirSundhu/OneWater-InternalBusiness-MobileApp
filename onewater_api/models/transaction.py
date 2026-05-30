@@ -70,6 +70,7 @@ class TransactionResponse(BaseModel):
     customer_name: str
     customer_phone: Optional[str] = None
     created_by: Optional[str] = None
+    created_by_name: Optional[str] = None
     transaction_date: date
     due_date: Optional[date] = None
     subtotal: float

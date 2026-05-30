@@ -188,14 +188,26 @@ class _FilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        onSelected: (_) => onTap(),
-        selectedColor: AppColors.primarySurface,
-        labelStyle: TextStyle(
-          color: selected ? AppColors.primary : AppColors.textSecondary,
-          fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.primarySurface : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected ? AppColors.primary : AppColors.cardBorder,
+              width: 1,
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: selected ? AppColors.primary : AppColors.textSecondary,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
         ),
       ),
     );
@@ -267,6 +279,15 @@ class _TransactionCard extends StatelessWidget {
                     AppDateUtils.formatDate(txn.transactionDate),
                     style: const TextStyle(fontSize: 12, color: AppColors.textTertiary),
                   ),
+                  if (txn.createdByName != null) ...[
+                    const SizedBox(width: 8),
+                    Icon(Icons.person, size: 14, color: AppColors.textTertiary),
+                    const SizedBox(width: 4),
+                    Text(
+                      txn.createdByName!,
+                      style: const TextStyle(fontSize: 12, color: AppColors.textTertiary),
+                    ),
+                  ],
                   const Spacer(),
                   Text(
                     txn.itemsSummary,
