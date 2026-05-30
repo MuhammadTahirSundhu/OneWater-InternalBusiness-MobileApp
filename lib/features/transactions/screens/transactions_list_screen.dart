@@ -10,15 +10,33 @@ import '../../../shared/widgets/empty_state_widget.dart';
 import '../../../shared/models/transaction_model.dart';
 import '../../onboarding/providers/auth_provider.dart';
 
+class TransactionFilterArgs {
+  final String? status;
+  final String? search;
+
+  const TransactionFilterArgs({this.status, this.search});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TransactionFilterArgs &&
+          runtimeType == other.runtimeType &&
+          status == other.status &&
+          search == other.search;
+
+  @override
+  int get hashCode => status.hashCode ^ search.hashCode;
+}
+
 final transactionsProvider = FutureProvider.autoDispose
-    .family<List<TransactionModel>, Map<String, String?>>((ref, filters) async {
+    .family<List<TransactionModel>, TransactionFilterArgs>((ref, filters) async {
   final dio = ref.read(dioClientProvider);
   final queryParams = <String, dynamic>{
     'limit': '50',
     'offset': '0',
   };
-  if (filters['status'] != null) queryParams['payment_status'] = filters['status'];
-  if (filters['search'] != null) queryParams['search'] = filters['search'];
+  if (filters.status != null) queryParams['payment_status'] = filters.status;
+  if (filters.search != null) queryParams['search'] = filters.search;
 
   final response = await dio.get(ApiEndpoints.transactions, queryParameters: queryParams);
   return (response.data as List).map((e) => TransactionModel.fromJson(e)).toList();
@@ -35,10 +53,11 @@ class _TransactionsListScreenState extends ConsumerState<TransactionsListScreen>
   String? _statusFilter;
   final _searchController = TextEditingController();
 
-  Map<String, String?> get _filters => {
-    'status': _statusFilter,
-    'search': _searchController.text.isNotEmpty ? _searchController.text : null,
-  };
+  TransactionFilterArgs get _filters => TransactionFilterArgs(
+    status: _statusFilter,
+    search: _searchController.text.isNotEmpty ? _searchController.text : null,
+  );
+
 
   @override
   void dispose() {
