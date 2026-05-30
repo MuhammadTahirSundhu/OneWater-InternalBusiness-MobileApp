@@ -1,12 +1,10 @@
-import 'package:flutter/foundation.dart';
-
 class ApiEndpoints {
   ApiEndpoints._();
 
-  // Base URL - automatically switches based on build mode
-  static const String baseUrl = kReleaseMode 
-      ? 'https://onewater-internalbusiness-mobileapp.onrender.com' // Production (Render URL)
-      : 'https://onewater-internalbusiness-mobileapp.onrender.com'; // Localhost for debugging
+  // Base URL — Production server on Render
+  static const String baseUrl = 'https://onewater-internalbusiness-mobileapp.onrender.com';
+  // Uncomment below and comment above for local development with emulator:
+  // static const String baseUrl = 'http://10.0.2.2:8000';
 
   static const String apiVersion = '/api/v1';
 
