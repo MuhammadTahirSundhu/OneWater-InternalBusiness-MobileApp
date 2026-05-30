@@ -73,6 +73,7 @@ class ProductsScreen extends ConsumerWidget {
                 product: p,
                 isAdmin: isAdmin,
                 onEdit: () => _showProductSheet(context, ref, product: p),
+                onDelete: () => _deleteProduct(context, ref, p),
                 onToggle: (val) => _toggleProduct(context, ref, p, val),
               );
             },
@@ -82,13 +83,44 @@ class ProductsScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: AppColors.danger))),
       ),
       floatingActionButton: isAdmin
-          ? FloatingActionButton.extended(
+          ? FloatingActionButton(
               onPressed: () => _showProductSheet(context, ref),
-              icon: const Icon(Icons.add),
-              label: const Text('Add Product'),
+              child: const Icon(Icons.add),
             )
           : null,
     );
+  }
+
+  Future<void> _deleteProduct(BuildContext context, WidgetRef ref, ProductModel p) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text('Delete Product'),
+        content: Text('Are you sure you want to delete ${p.name}?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () => Navigator.pop(c, true), 
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    try {
+      final dio = ref.read(dioClientProvider);
+      await dio.delete(ApiEndpoints.product(p.id));
+      ref.invalidate(productsProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Product deleted')));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
   }
 
   Future<void> _toggleProduct(BuildContext context, WidgetRef ref, ProductModel p, bool val) async {
@@ -119,9 +151,10 @@ class _ProductCard extends StatelessWidget {
   final ProductModel product;
   final bool isAdmin;
   final VoidCallback onEdit;
+  final VoidCallback onDelete;
   final ValueChanged<bool> onToggle;
 
-  const _ProductCard({required this.product, required this.isAdmin, required this.onEdit, required this.onToggle});
+  const _ProductCard({required this.product, required this.isAdmin, required this.onEdit, required this.onDelete, required this.onToggle});
 
   @override
   Widget build(BuildContext context) {
@@ -170,11 +203,20 @@ class _ProductCard extends StatelessWidget {
                 ),
               ),
               if (isAdmin)
-                Switch(
-                  value: product.isActive,
-                  onChanged: onToggle,
-                  activeTrackColor: AppColors.primary,
-                  activeThumbColor: Colors.white,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Switch(
+                      value: product.isActive,
+                      onChanged: onToggle,
+                      activeTrackColor: AppColors.primary,
+                      activeThumbColor: Colors.white,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, color: AppColors.danger),
+                      onPressed: onDelete,
+                    ),
+                  ],
                 )
               else
                 Container(

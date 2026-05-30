@@ -25,7 +25,7 @@ async def list_transactions(
     current_user: dict = Depends(get_current_user),
 ):
     db = get_supabase()
-    query = db.table("transactions").select("*, users!transactions_created_by_fkey(full_name)").order("transaction_date", desc=True)
+    query = db.table("transactions").select("*, users!transactions_created_by_fkey(full_name), customers(address)").order("transaction_date", desc=True)
 
     # Salesman can only see their own transactions
     if current_user["role"] == "salesman":
@@ -61,11 +61,14 @@ async def list_transactions(
     for t in result.data:
         items = items_by_txn.get(t["id"], [])
         
-        # Extract created_by_name
+        # Extract created_by_name and customer_address
         user_data = t.pop("users", None)
         created_by_name = user_data.get("full_name") if user_data else None
         
-        t_response = TransactionResponse(**t, created_by_name=created_by_name, items=items)
+        customer_data = t.pop("customers", None)
+        customer_address = customer_data.get("address") if customer_data else None
+        
+        t_response = TransactionResponse(**t, created_by_name=created_by_name, customer_address=customer_address, items=items)
         transactions.append(t_response)
 
     return transactions
@@ -148,24 +151,29 @@ async def create_transaction(body: TransactionCreate, current_user: dict = Depen
 @router.get("/{transaction_id}", response_model=TransactionResponse)
 async def get_transaction(transaction_id: str, current_user: dict = Depends(get_current_user)):
     db = get_supabase()
-    result = db.table("transactions").select("*").eq("id", transaction_id).execute()
+    
+    query = db.table("transactions").select("*, users!transactions_created_by_fkey(full_name), customers(address)").eq("id", transaction_id)
+    if current_user["role"] == "salesman":
+        query = query.eq("created_by", current_user["id"])
+        
+    result = query.execute()
+
     if not result.data:
         raise HTTPException(status_code=404, detail="Transaction not found")
 
     t = result.data[0]
-
-    # Access control
-    if current_user["role"] == "salesman" and t["created_by"] != current_user["id"]:
-        raise HTTPException(status_code=403, detail="Access denied")
-
+    
     items_result = db.table("transaction_items").select("*").eq("transaction_id", transaction_id).execute()
     items = [TransactionItemResponse(**item) for item in items_result.data]
 
-    # Fetch user name for this single transaction
-    user_result = db.table("users").select("full_name").eq("id", t["created_by"]).execute()
-    created_by_name = user_result.data[0]["full_name"] if user_result.data else None
+    # Extract created_by_name and customer_address
+    user_data = t.pop("users", None)
+    created_by_name = user_data.get("full_name") if user_data else None
+    
+    customer_data = t.pop("customers", None)
+    customer_address = customer_data.get("address") if customer_data else None
 
-    return TransactionResponse(**t, created_by_name=created_by_name, items=items)
+    return TransactionResponse(**t, created_by_name=created_by_name, customer_address=customer_address, items=items)
 
 
 @router.put("/{transaction_id}", response_model=TransactionResponse)

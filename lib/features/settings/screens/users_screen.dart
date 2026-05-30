@@ -37,6 +37,38 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
     }
   }
 
+  Future<void> _deleteUser(UserModel user) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text('Delete User'),
+        content: Text('Are you sure you want to delete ${user.fullName}?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () => Navigator.pop(c, true), 
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    try {
+      final dio = ref.read(dioClientProvider);
+      await dio.delete('${ApiEndpoints.users}/${user.id}');
+      ref.invalidate(usersProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User deleted')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final usersAsync = ref.watch(usersProvider);
@@ -60,10 +92,19 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                   ),
                   title: Text(user.fullName, style: const TextStyle(fontWeight: FontWeight.w600)),
                   subtitle: Text('${user.roleDisplayName} • ${user.phone}'),
-                  trailing: Switch(
-                    value: user.isActive,
-                    onChanged: (v) => _toggleUserActive(user, v),
-                    activeTrackColor: AppColors.primary, activeThumbColor: Colors.white,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Switch(
+                        value: user.isActive,
+                        onChanged: (v) => _toggleUserActive(user, v),
+                        activeTrackColor: AppColors.primary, activeThumbColor: Colors.white,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, color: AppColors.danger),
+                        onPressed: () => _deleteUser(user),
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -73,10 +114,9 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => const Center(child: Text('Error loading users')),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () => context.push('/settings/users/new'),
-        icon: const Icon(Icons.add),
-        label: const Text('Add User'),
+        child: const Icon(Icons.add),
       ),
     );
   }

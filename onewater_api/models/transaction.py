@@ -69,6 +69,7 @@ class TransactionResponse(BaseModel):
     customer_id: str
     customer_name: str
     customer_phone: Optional[str] = None
+    customer_address: Optional[str] = None
     created_by: Optional[str] = None
     created_by_name: Optional[str] = None
     transaction_date: date

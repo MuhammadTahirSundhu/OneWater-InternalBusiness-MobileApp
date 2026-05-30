@@ -44,6 +44,7 @@ class TransactionModel {
   final String customerId;
   final String customerName;
   final String? customerPhone;
+  final String? customerAddress;
   final String? createdBy;
   final String? createdByName;
   final DateTime transactionDate;
@@ -65,6 +66,7 @@ class TransactionModel {
     required this.customerId,
     required this.customerName,
     this.customerPhone,
+    this.customerAddress,
     this.createdBy,
     this.createdByName,
     required this.transactionDate,
@@ -88,6 +90,7 @@ class TransactionModel {
       customerId: json['customer_id'] as String,
       customerName: json['customer_name'] as String,
       customerPhone: json['customer_phone'] as String?,
+      customerAddress: json['customer_address'] as String?,
       createdBy: json['created_by'] as String?,
       createdByName: json['created_by_name'] as String?,
       transactionDate: DateTime.parse(json['transaction_date'] as String),

@@ -11,7 +11,7 @@ class ReportsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentPreset = ref.watch(reportPresetProvider);
+    final currentFilter = ref.watch(reportFilterProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -28,7 +28,7 @@ class ReportsScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildDateFilterRow(ref, currentPreset),
+              _buildDateFilterRow(context, ref, currentFilter),
               const SizedBox(height: 16),
               _buildSummaryCards(ref),
               const SizedBox(height: 24),
@@ -45,25 +45,54 @@ class ReportsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDateFilterRow(WidgetRef ref, String currentPreset) {
+  Widget _buildDateFilterRow(BuildContext context, WidgetRef ref, ReportFilterState currentFilter) {
     final presets = [
       {'value': 'today', 'label': 'Today'},
       {'value': 'yesterday', 'label': 'Yesterday'},
       {'value': 'last_7_days', 'label': 'Last 7 Days'},
       {'value': 'this_month', 'label': 'This Month'},
       {'value': 'last_month', 'label': 'Last Month'},
+      {'value': 'custom', 'label': 'Custom'},
     ];
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: presets.map((p) {
-          final isSelected = p['value'] == currentPreset;
+          final isSelected = p['value'] == currentFilter.preset;
           return Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: GestureDetector(
-              onTap: () {
-                ref.read(reportPresetProvider.notifier).state = p['value']!;
+              onTap: () async {
+                if (p['value'] == 'custom') {
+                  final picked = await showDateRangePicker(
+                    context: context,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime.now(),
+                    currentDate: DateTime.now(),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: const ColorScheme.light(
+                            primary: AppColors.primary,
+                            onPrimary: Colors.white,
+                            onSurface: AppColors.textPrimary,
+                          ),
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+                  if (picked != null) {
+                    ref.read(reportFilterProvider.notifier).state = ReportFilterState(
+                      preset: 'custom',
+                      dateFrom: picked.start,
+                      dateTo: picked.end,
+                    );
+                  }
+                } else {
+                  ref.read(reportFilterProvider.notifier).state = ReportFilterState(preset: p['value']!);
+                }
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),

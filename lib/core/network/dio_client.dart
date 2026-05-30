@@ -3,6 +3,13 @@ import 'package:flutter/foundation.dart';
 import '../constants/api_endpoints.dart';
 import '../storage/secure_storage.dart';
 
+class ApiException implements Exception {
+  final String message;
+  ApiException(this.message);
+  @override
+  String toString() => message;
+}
+
 class DioClient {
   late final Dio _dio;
   final SecureStorageService _storage;
@@ -28,12 +35,40 @@ class DioClient {
 
   Dio get dio => _dio;
 
+  Exception _handleError(dynamic e) {
+    if (e is DioException) {
+      if (e.response?.data is Map) {
+        final data = e.response!.data as Map;
+        if (data.containsKey('detail')) {
+          final detail = data['detail'];
+          if (detail is List && detail.isNotEmpty && detail[0] is Map && detail[0].containsKey('msg')) {
+             return ApiException(detail[0]['msg']);
+          }
+          return ApiException(detail.toString());
+        }
+        if (data.containsKey('message')) return ApiException(data['message'].toString());
+      }
+      if (e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.receiveTimeout) {
+        return ApiException('Connection timed out. The server might be waking up.');
+      }
+      if (e.type == DioExceptionType.connectionError) {
+        return ApiException('No internet connection or server unreachable.');
+      }
+      return ApiException(e.message ?? 'Network error');
+    }
+    return ApiException(e.toString());
+  }
+
   // GET
   Future<Response> get(
     String path, {
     Map<String, dynamic>? queryParameters,
   }) async {
-    return _dio.get(path, queryParameters: queryParameters);
+    try {
+      return await _dio.get(path, queryParameters: queryParameters);
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
 
   // POST
@@ -42,7 +77,11 @@ class DioClient {
     dynamic data,
     Map<String, dynamic>? queryParameters,
   }) async {
-    return _dio.post(path, data: data, queryParameters: queryParameters);
+    try {
+      return await _dio.post(path, data: data, queryParameters: queryParameters);
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
 
   // PUT
@@ -50,12 +89,20 @@ class DioClient {
     String path, {
     dynamic data,
   }) async {
-    return _dio.put(path, data: data);
+    try {
+      return await _dio.put(path, data: data);
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
 
   // DELETE
   Future<Response> delete(String path) async {
-    return _dio.delete(path);
+    try {
+      return await _dio.delete(path);
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
 }
 

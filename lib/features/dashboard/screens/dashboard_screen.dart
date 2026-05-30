@@ -46,7 +46,7 @@ class DashboardScreen extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.water_drop, color: AppColors.primary, size: 22),
+                      Image.asset('assets/images/homescreenico.png', width: 28, height: 28),
                       const SizedBox(width: 8),
                       Text(
                         AppStrings.appName,
