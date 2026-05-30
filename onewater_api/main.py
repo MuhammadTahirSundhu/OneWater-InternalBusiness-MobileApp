@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 import logging
 
 from config import get_settings
-from routers import auth, users, customers, products, transactions, reports, notifications, audit, settings
+from routers import auth, users, customers, products, transactions, reports, notifications, audit, settings, expenses
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -37,6 +37,7 @@ app.include_router(reports.router, prefix="/api/v1/reports", tags=["Reports"])
 app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["Notifications"])
 app.include_router(audit.router, prefix="/api/v1/audit-logs", tags=["Audit"])
 app.include_router(settings.router, prefix="/api/v1/settings", tags=["Settings"])
+app.include_router(expenses.router, prefix="/api/v1/expenses", tags=["Expenses"])
 
 
 @app.get("/health")

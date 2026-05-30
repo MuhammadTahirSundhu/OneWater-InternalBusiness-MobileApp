@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from datetime import datetime, timezone
-from dependencies import get_supabase, require_admin
+from dependencies import get_supabase, get_current_user, require_admin
 from models.product import ProductCreate, ProductUpdate, ProductResponse
 from utils.audit_writer import write_audit
 
@@ -8,9 +8,17 @@ router = APIRouter()
 
 
 @router.get("/", response_model=list[ProductResponse])
-async def list_products(current_user: dict = Depends(require_admin)):
+async def list_products(current_user: dict = Depends(get_current_user)):
+    """List all products. Accessible by all authenticated users.
+    Salesmen only see active products; admins/managers see all."""
     db = get_supabase()
-    result = db.table("products").select("*").order("created_at").execute()
+    query = db.table("products").select("*").order("created_at")
+
+    # Salesmen only see active products
+    if current_user["role"] == "salesman":
+        query = query.eq("is_active", True)
+
+    result = query.execute()
     return [ProductResponse(**p) for p in result.data]
 
 

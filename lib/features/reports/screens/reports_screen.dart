@@ -11,6 +11,8 @@ class ReportsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currentPreset = ref.watch(reportPresetProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('Reports & Analytics')),
@@ -26,6 +28,8 @@ class ReportsScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _buildDateFilterRow(ref, currentPreset),
+              const SizedBox(height: 16),
               _buildSummaryCards(ref),
               const SizedBox(height: 24),
               _buildRevenueTrendChart(ref),
@@ -37,6 +41,42 @@ class ReportsScreen extends ConsumerWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDateFilterRow(WidgetRef ref, String currentPreset) {
+    final presets = [
+      {'value': 'today', 'label': 'Today'},
+      {'value': 'yesterday', 'label': 'Yesterday'},
+      {'value': 'last_7_days', 'label': 'Last 7 Days'},
+      {'value': 'this_month', 'label': 'This Month'},
+      {'value': 'last_month', 'label': 'Last Month'},
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: presets.map((p) {
+          final isSelected = p['value'] == currentPreset;
+          return Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: ChoiceChip(
+              label: Text(p['label']!),
+              selected: isSelected,
+              onSelected: (selected) {
+                if (selected) {
+                  ref.read(reportPresetProvider.notifier).state = p['value']!;
+                }
+              },
+              selectedColor: AppColors.primarySurface,
+              labelStyle: TextStyle(
+                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -73,7 +113,7 @@ class ReportsScreen extends ConsumerWidget {
     final trendAsync = ref.watch(revenueTrendProvider);
 
     return _ChartCard(
-      title: '7-Day Revenue Trend',
+      title: 'Revenue Trend',
       child: trendAsync.when(
         data: (data) {
           if (data.isEmpty) return const Center(child: Text('No data'));
@@ -188,7 +228,7 @@ class ReportsScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => const Text('Error loading chart'),
+        error: (error, stackTrace) => Text('Error loading chart: $error'),
       ),
     );
   }
@@ -317,4 +357,3 @@ class _ChartCard extends StatelessWidget {
     );
   }
 }
-

@@ -59,4 +59,12 @@ class ApiEndpoints {
   // Settings
   static const String settings = '$apiVersion/settings/';
   static String setting(String key) => '$apiVersion/settings/$key';
+
+  // Expenses
+  static const String expenses = '$apiVersion/expenses/';
+  static String expense(String id) => '$apiVersion/expenses/$id';
+
+  // Amount In
+  static const String amountIn = '$apiVersion/expenses/amount-in/';
+  static String amountInRecord(String id) => '$apiVersion/expenses/amount-in/$id';
 }

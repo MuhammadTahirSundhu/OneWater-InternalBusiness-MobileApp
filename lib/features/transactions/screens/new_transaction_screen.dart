@@ -21,6 +21,7 @@ class NewTransactionScreen extends ConsumerStatefulWidget {
 class _NewTransactionScreenState extends ConsumerState<NewTransactionScreen> {
   int _currentStep = 0;
   bool _isLoading = false;
+  bool _isSubmitting = false;
 
   // Step 1 - Customer
   CustomerModel? _selectedCustomer;
@@ -108,8 +109,12 @@ class _NewTransactionScreenState extends ConsumerState<NewTransactionScreen> {
 
   Future<void> _submitTransaction() async {
     if (_selectedCustomer == null || _quantities.isEmpty) return;
+    if (_isSubmitting) return;
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _isSubmitting = true;
+    });
     try {
       final dio = ref.read(dioClientProvider);
 
@@ -147,7 +152,10 @@ class _NewTransactionScreenState extends ConsumerState<NewTransactionScreen> {
         );
       }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() {
+        _isLoading = false;
+        _isSubmitting = false;
+      });
     }
   }
 
@@ -635,15 +643,15 @@ class _NewTransactionScreenState extends ConsumerState<NewTransactionScreen> {
             spacing: 8,
             children: [
               ChoiceChip(label: const Text('Paid'), selected: _paymentStatus == 'paid',
-                onSelected: (_) => setState(() => _paymentStatus = 'paid'),
+                onSelected: (selected) { if (selected) setState(() => _paymentStatus = 'paid'); },
                 selectedColor: AppColors.successLight,
               ),
               ChoiceChip(label: const Text('Partial'), selected: _paymentStatus == 'partial',
-                onSelected: (_) => setState(() => _paymentStatus = 'partial'),
+                onSelected: (selected) { if (selected) setState(() => _paymentStatus = 'partial'); },
                 selectedColor: AppColors.warningLight,
               ),
               ChoiceChip(label: const Text('Pending'), selected: _paymentStatus == 'pending',
-                onSelected: (_) => setState(() => _paymentStatus = 'pending'),
+                onSelected: (selected) { if (selected) setState(() => _paymentStatus = 'pending'); },
                 selectedColor: AppColors.dangerLight,
               ),
             ],
@@ -715,14 +723,27 @@ class _PaymentMethodChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSelected = selected == value;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) => onTap(value),
-      selectedColor: AppColors.primarySurface,
-      labelStyle: TextStyle(
-        color: isSelected ? AppColors.primary : AppColors.textSecondary,
-        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+    return GestureDetector(
+      onTap: () => onTap(value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primarySurface : AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : AppColors.cardBorder,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? AppColors.primary : AppColors.textSecondary,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            fontSize: 13,
+          ),
+        ),
       ),
     );
   }

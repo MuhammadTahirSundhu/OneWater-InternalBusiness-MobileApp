@@ -18,6 +18,8 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
+    final isSalesman = user?.role == 'salesman';
+    
     final dashboardAsync = ref.watch(dashboardProvider);
     final recentAsync = ref.watch(recentTransactionsProvider);
     final notifCount = ref.watch(unreadNotificationCountProvider);
@@ -58,7 +60,7 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                   Text(
                     '${AppDateUtils.getGreeting()}, ${user?.fullName.split(' ').first ?? ''}',
-                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                    style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -92,7 +94,7 @@ class DashboardScreen extends ConsumerWidget {
                             )
                           : const SizedBox.shrink(),
                       loading: () => const SizedBox.shrink(),
-                      error: (error, stackTrace) => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
                     ),
                   ],
                 ),
@@ -100,56 +102,59 @@ class DashboardScreen extends ConsumerWidget {
               ],
             ),
 
-            // KPI Cards
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 0, 0),
-                child: SizedBox(
-                  height: 140,
-                  child: dashboardAsync.when(
-                    data: (data) => ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        StatCard(
-                          title: AppStrings.todaySales,
-                          value: CurrencyFormatter.formatCompact(data['today_sales'] ?? 0),
-                          icon: Icons.trending_up,
-                          iconColor: AppColors.success,
-                          iconBgColor: AppColors.successLight,
-                        ),
-                        const SizedBox(width: 12),
-                        StatCard(
-                          title: AppStrings.todayTransactions,
-                          value: '${data['today_transactions'] ?? 0}',
-                          icon: Icons.receipt_long,
-                        ),
-                        const SizedBox(width: 12),
-                        StatCard(
-                          title: AppStrings.pendingPayments,
-                          value: CurrencyFormatter.formatCompact(data['total_pending'] ?? 0),
-                          icon: Icons.schedule,
-                          iconColor: AppColors.warning,
-                          iconBgColor: AppColors.warningLight,
-                        ),
-                        const SizedBox(width: 12),
-                        StatCard(
-                          title: AppStrings.pendingCustomers,
-                          value: '${data['pending_customers'] ?? 0}',
-                          icon: Icons.people_outline,
-                          iconColor: AppColors.danger,
-                          iconBgColor: AppColors.dangerLight,
-                        ),
-                        const SizedBox(width: 16),
-                      ],
-                    ),
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Center(
-                      child: Text('Failed to load', style: TextStyle(color: AppColors.textSecondary)),
+            // KPI Cards (Hidden for salesman to keep UI simple)
+            if (!isSalesman)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 0, 0),
+                  child: SizedBox(
+                    height: 140,
+                    child: dashboardAsync.when(
+                      data: (data) => ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          StatCard(
+                            title: AppStrings.todaySales,
+                            value: CurrencyFormatter.formatCompact(data['today_sales'] ?? 0),
+                            icon: Icons.trending_up,
+                            iconColor: AppColors.success,
+                            iconBgColor: AppColors.successLight,
+                          ),
+                          const SizedBox(width: 12),
+                          StatCard(
+                            title: 'Amount In (Month)',
+                            value: CurrencyFormatter.formatCompact(data['month_amount_in'] ?? 0),
+                            icon: Icons.add_circle_outline,
+                            iconColor: AppColors.primary,
+                            iconBgColor: AppColors.primarySurface,
+                          ),
+                          const SizedBox(width: 12),
+                          StatCard(
+                            title: 'Expenses (Month)',
+                            value: CurrencyFormatter.formatCompact(data['total_expenses'] ?? 0),
+                            icon: Icons.remove_circle_outline,
+                            iconColor: AppColors.danger,
+                            iconBgColor: AppColors.dangerLight,
+                          ),
+                          const SizedBox(width: 12),
+                          StatCard(
+                            title: AppStrings.pendingPayments,
+                            value: CurrencyFormatter.formatCompact(data['total_pending'] ?? 0),
+                            icon: Icons.schedule,
+                            iconColor: AppColors.warning,
+                            iconBgColor: AppColors.warningLight,
+                          ),
+                          const SizedBox(width: 16),
+                        ],
+                      ),
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (_, __) => const Center(
+                        child: Text('Failed to load', style: TextStyle(color: AppColors.textSecondary)),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
 
             // Quick Actions
             SliverToBoxAdapter(
@@ -193,23 +198,19 @@ class DashboardScreen extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: _QuickActionCard(
-                            icon: Icons.payments,
-                            label: AppStrings.collectPayment,
+                            icon: Icons.add_circle_outline,
+                            label: 'Amount In',
                             color: AppColors.success,
-                            onTap: () => context.push('/transactions'),
+                            onTap: () => context.push('/amount-in/new'),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: _QuickActionCard(
-                            icon: Icons.bar_chart,
-                            label: AppStrings.viewReports,
-                            color: AppColors.warning,
-                            onTap: () {
-                              if (user?.isAdminOrManager ?? false) {
-                                context.push('/reports');
-                              }
-                            },
+                            icon: Icons.remove_circle_outline,
+                            label: 'Record Expense',
+                            color: AppColors.danger,
+                            onTap: () => context.push('/expenses/new'),
                           ),
                         ),
                       ],
@@ -276,7 +277,7 @@ class DashboardScreen extends ConsumerWidget {
                   child: CircularProgressIndicator(),
                 )),
               ),
-              error: (error, stackTrace) => const SliverToBoxAdapter(
+              error: (_, __) => const SliverToBoxAdapter(
                 child: Padding(
                   padding: EdgeInsets.all(32),
                   child: Center(child: Text('Failed to load transactions')),
@@ -424,4 +425,3 @@ class _TransactionTile extends StatelessWidget {
     );
   }
 }
-

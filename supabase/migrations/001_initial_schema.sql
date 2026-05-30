@@ -1,8 +1,10 @@
--- OneWater Pakistan Database Schema
--- Supabase / PostgreSQL Migration
+-- ============================================================
+-- OneWater Pakistan — Complete Database Schema (v2)
+-- Run this once in Supabase SQL Editor on a fresh project
+-- ============================================================
 
 -- ==========================================
--- Users table (with password_hash for auth)
+-- Users table
 -- ==========================================
 CREATE TABLE IF NOT EXISTS users (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -42,7 +44,14 @@ CREATE TABLE IF NOT EXISTS products (
     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name             TEXT NOT NULL,
     sku              TEXT UNIQUE NOT NULL,
-    category         TEXT NOT NULL CHECK (category IN ('bottle_pack_500ml', 'bottle_1_5L', 'bottle_19L_new', 'bottle_19L_refill')),
+    category         TEXT NOT NULL CHECK (category IN (
+                         'bottle_pack_500ml',
+                         'bottle_1_5L',
+                         'bottle_19L_new',
+                         'bottle_19L_refill',
+                         'refill_filter_water',
+                         'mineral_water'
+                     )),
     unit_price       NUMERIC(10,2) NOT NULL,
     security_deposit NUMERIC(10,2) DEFAULT 0,
     is_active        BOOLEAN DEFAULT TRUE,
@@ -71,7 +80,6 @@ CREATE TABLE IF NOT EXISTS transactions (
     payment_method   TEXT CHECK (payment_method IN ('cash', 'bank_transfer', 'easypaisa', 'jazzcash', 'credit')),
     notes            TEXT,
     invoice_pdf_url  TEXT,
-    -- Scalability columns
     branch_id        UUID,
     delivery_status  TEXT,
     delivery_address TEXT,
@@ -107,6 +115,35 @@ CREATE TABLE IF NOT EXISTS payment_collections (
     collected_at    TIMESTAMPTZ DEFAULT NOW(),
     payment_method  TEXT CHECK (payment_method IN ('cash', 'bank_transfer', 'easypaisa', 'jazzcash')),
     notes           TEXT
+);
+
+-- ==========================================
+-- Expenses table
+-- ==========================================
+CREATE TABLE IF NOT EXISTS expenses (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    description     TEXT NOT NULL,
+    amount          NUMERIC(10,2) NOT NULL CHECK (amount > 0),
+    category        TEXT NOT NULL DEFAULT 'other' CHECK (category IN (
+                        'fuel', 'salary', 'utilities', 'office', 'maintenance', 'other'
+                    )),
+    expense_date    DATE NOT NULL DEFAULT CURRENT_DATE,
+    notes           TEXT,
+    recorded_by     UUID REFERENCES users(id),
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ==========================================
+-- Amount In table (general cash inflows)
+-- ==========================================
+CREATE TABLE IF NOT EXISTS amount_in (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    description     TEXT NOT NULL,
+    amount          NUMERIC(10,2) NOT NULL CHECK (amount > 0),
+    notes           TEXT,
+    recorded_by     UUID REFERENCES users(id),
+    recorded_date   DATE NOT NULL DEFAULT CURRENT_DATE,
+    created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- ==========================================
@@ -154,45 +191,53 @@ CREATE TABLE IF NOT EXISTS business_settings (
 -- ==========================================
 -- Indexes for performance
 -- ==========================================
-CREATE INDEX IF NOT EXISTS idx_transactions_customer ON transactions(customer_id);
-CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(transaction_date);
-CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(payment_status);
+CREATE INDEX IF NOT EXISTS idx_transactions_customer   ON transactions(customer_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_date       ON transactions(transaction_date);
+CREATE INDEX IF NOT EXISTS idx_transactions_status     ON transactions(payment_status);
 CREATE INDEX IF NOT EXISTS idx_transactions_created_by ON transactions(created_by);
-CREATE INDEX IF NOT EXISTS idx_transaction_items_txn ON transaction_items(transaction_id);
+CREATE INDEX IF NOT EXISTS idx_transaction_items_txn   ON transaction_items(transaction_id);
 CREATE INDEX IF NOT EXISTS idx_payment_collections_txn ON payment_collections(transaction_id);
-CREATE INDEX IF NOT EXISTS idx_customers_pending ON customers(total_pending) WHERE total_pending > 0;
-CREATE INDEX IF NOT EXISTS idx_audit_logs_user ON audit_logs(user_id);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action);
-CREATE INDEX IF NOT EXISTS idx_audit_logs_created ON audit_logs(created_at);
-CREATE INDEX IF NOT EXISTS idx_notifications_roles ON notifications USING GIN(target_roles);
+CREATE INDEX IF NOT EXISTS idx_customers_pending       ON customers(total_pending) WHERE total_pending > 0;
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user         ON audit_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_action       ON audit_logs(action);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created      ON audit_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_roles     ON notifications USING GIN(target_roles);
+CREATE INDEX IF NOT EXISTS idx_expenses_date           ON expenses(expense_date);
+CREATE INDEX IF NOT EXISTS idx_expenses_recorded_by    ON expenses(recorded_by);
+CREATE INDEX IF NOT EXISTS idx_amount_in_date          ON amount_in(recorded_date);
 
 -- ==========================================
 -- Row Level Security (RLS)
 -- ==========================================
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE transaction_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users              ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customers          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE products           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transactions       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transaction_items  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payment_collections ENABLE ROW LEVEL SECURITY;
-ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE business_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE expenses           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE amount_in          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_logs         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE business_settings  ENABLE ROW LEVEL SECURITY;
 
--- Service role bypass (FastAPI uses service key)
--- These policies allow the service role full access
-CREATE POLICY "Service role full access" ON users FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access" ON customers FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access" ON products FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access" ON transactions FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access" ON transaction_items FOR ALL USING (true) WITH CHECK (true);
+-- Service role bypass (FastAPI uses service key — full access)
+CREATE POLICY "Service role full access" ON users              FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access" ON customers          FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access" ON products           FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access" ON transactions       FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access" ON transaction_items  FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Service role full access" ON payment_collections FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access" ON audit_logs FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access" ON notifications FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Service role full access" ON business_settings FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access" ON expenses           FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access" ON amount_in          FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access" ON audit_logs         FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access" ON notifications      FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Service role full access" ON business_settings  FOR ALL USING (true) WITH CHECK (true);
 
 -- ==========================================
 -- Storage bucket for invoices
+-- Run separately or via Supabase dashboard:
+-- INSERT INTO storage.buckets (id, name, public)
+-- VALUES ('invoices', 'invoices', false)
+-- ON CONFLICT (id) DO NOTHING;
 -- ==========================================
--- Run in Supabase SQL editor or create via dashboard:
--- INSERT INTO storage.buckets (id, name, public) VALUES ('invoices', 'invoices', false);

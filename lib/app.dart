@@ -22,6 +22,8 @@ import 'features/settings/screens/security_settings_screen.dart';
 import 'features/customers/screens/customer_detail_screen.dart';
 import 'features/transactions/screens/transaction_detail_screen.dart';
 import 'features/transactions/screens/collect_payment_screen.dart';
+import 'features/expenses/screens/record_expense_screen.dart';
+import 'features/customers/screens/add_customer_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -143,10 +145,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/customers/new',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => Scaffold(
-          appBar: AppBar(title: const Text('Add Customer')),
-          body: const Center(child: Text('Add customer screen — coming soon')),
-        ),
+        builder: (context, state) => const AddCustomerScreen(),
+      ),
+      GoRoute(
+        path: '/expenses/new',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const RecordExpenseScreen(isAmountIn: false),
+      ),
+      GoRoute(
+        path: '/amount-in/new',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const RecordExpenseScreen(isAmountIn: true),
       ),
       GoRoute(
         path: '/customers/:id',

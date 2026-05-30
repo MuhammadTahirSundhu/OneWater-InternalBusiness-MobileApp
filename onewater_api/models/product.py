@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date
 from enum import Enum
 
 
@@ -9,6 +9,8 @@ class ProductCategory(str, Enum):
     bottle_1_5L = "bottle_1_5L"
     bottle_19L_new = "bottle_19L_new"
     bottle_19L_refill = "bottle_19L_refill"
+    refill_filter_water = "refill_filter_water"
+    mineral_water = "mineral_water"
 
 
 class ProductCreate(BaseModel):
