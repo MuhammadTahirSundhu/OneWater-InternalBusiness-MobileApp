@@ -44,10 +44,22 @@ async def list_transactions(
 
     result = query.range(offset, offset + limit - 1).execute()
 
+    if not result.data:
+        return []
+
+    transaction_ids = [t["id"] for t in result.data]
+    items_result = db.table("transaction_items").select("*").in_("transaction_id", transaction_ids).execute()
+    
+    items_by_txn = {}
+    for item in items_result.data:
+        txn_id = item["transaction_id"]
+        if txn_id not in items_by_txn:
+            items_by_txn[txn_id] = []
+        items_by_txn[txn_id].append(TransactionItemResponse(**item))
+
     transactions = []
     for t in result.data:
-        items_result = db.table("transaction_items").select("*").eq("transaction_id", t["id"]).execute()
-        items = [TransactionItemResponse(**item) for item in items_result.data]
+        items = items_by_txn.get(t["id"], [])
         t_response = TransactionResponse(**t, items=items)
         transactions.append(t_response)
 
